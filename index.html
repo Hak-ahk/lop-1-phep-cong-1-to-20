@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm Phép cộng</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fbcfe8 0%, #fce7f3 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 95%;
+            width: 550px;
+            position: relative;
+            margin: 1rem;
+        }
+        .question-box {
+            background-color: #e0f2fe;
+            padding: 1.25rem;
+            border-radius: 1rem;
+            margin-bottom: 1.25rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a202c;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+        .option-button {
+            background-color: #8b5cf6;
+            color: white;
+            padding: 0.9rem 1.25rem;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: block;
+            width: 100%;
+            margin-bottom: 0.8rem;
+            border: none;
+        }
+        .option-button:hover {
+            background-color: #7c3aed;
+            transform: translateY(-2px);
+        }
+        .option-button:active {
+            background-color: #6d28d9;
+            transform: translateY(0);
+        }
+        .option-button.correct {
+            background-color: #10b981;
+        }
+        .option-button.wrong {
+            background-color: #ef4444;
+        }
+        .start-button, .reset-button {
+            background-color: #f97316;
+            color: white;
+            padding: 0.7rem 1.25rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+        .start-button:hover, .reset-button:hover {
+            background-color: #ea580c;
+            transform: translateY(-2px);
+        }
+        .start-button:active, .reset-button:active {
+            background-color: #c2410c;
+            transform: translateY(0);
+        }
+        .name-input {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid #ddd;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .feedback-message {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-top: 0.8rem;
+            color: #dc2626;
+        }
+        .score-display-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        .score-reset-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            width: 100%;
+        }
+
+        /* Confetti/Kim tuyến styles */
+        .confetti {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #ffeb3b;
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(0);
+            animation: confetti-burst-and-fall 2s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes confetti-burst-and-fall {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
+            25% {
+                opacity: 1;
+                transform: translate(var(--translate-x), var(--translate-y-up)) rotate(var(--rotate-deg)) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--translate-x), var(--translate-y-down)) rotate(var(--rotate-deg-end)) scale(0.5);
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-container { padding: 1.25rem; width: 95%; }
+            .question-box { font-size: 1.5rem; padding: 0.8rem; margin-bottom: 1rem; }
+            .option-button { font-size: 1rem; padding: 0.6rem 0.8rem; margin-bottom: 0.6rem; }
+            .score-display-container, .feedback-message { font-size: 1.1rem; }
+            h1 { font-size: 1.8rem; }
+            .reset-button, .start-button { font-size: 0.9rem; padding: 0.6rem 1rem; }
+            .score-reset-container { margin-bottom: 1rem; }
+        }
+
+        @media (max-width: 480px) {
+            .game-container { padding: 0.8rem; border-radius: 0.8rem; }
+            .question-box { font-size: 1.2rem; padding: 0.6rem; margin-bottom: 0.8rem; }
+            .option-button { font-size: 0.9rem; padding: 0.5rem 0.7rem; margin-bottom: 0.5rem; }
+            .score-display-container, .feedback-message { font-size: 0.9rem; }
+            h1 { font-size: 1.5rem; }
+            .reset-button, .start-button { font-size: 0.8rem; padding: 0.5rem 0.8rem; }
+            .score-reset-container { margin-bottom: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">Trắc nghiệm Phép cộng</h1>
+        <div id="start-screen">
+            <h2 class="text-2xl font-bold mb-4">Nhập tên của bạn để bắt đầu chơi!</h2>
+            <input type="text" id="player-name" class="name-input" placeholder="Tên người chơi">
+            <button id="start-button" class="start-button">Bắt đầu</button>
+        </div>
+
+        <div id="game-screen" class="hidden">
+            <div class="score-reset-container">
+                <div class="score-display-container">
+                    <div id="score-display">Điểm: 0</div>
+                    <div id="question-count">Câu: 0 / 0</div>
+                </div>
+                <button id="reset-button" class="reset-button">Chơi lại</button>
+            </div>
+            <div id="question-box" class="question-box"></div>
+            <div id="options-container" class="grid grid-cols-1 gap-4">
+                <!-- Các nút đáp án sẽ được thêm vào đây bằng JavaScript -->
+            </div>
+            <div id="feedback-message" class="feedback-message hidden"></div>
+        </div>
+
+        <div id="end-screen" class="hidden">
+            <h2 class="text-3xl font-bold mb-4">Chúc mừng bạn đã hoàn thành!</h2>
+            <div id="end-message" class="text-xl text-gray-700 mb-4"></div>
+            <button id="play-again-button" class="reset-button">Chơi lại</button>
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu câu hỏi và đáp án mới
+        const questionsData = [
+            { question: "3 + 4", answer: "seven" },
+            { question: "2 + 5", answer: "seven" },
+            { question: "6 + 2", answer: "eight" },
+            { question: "4 + 3", answer: "seven" },
+            { question: "5 + 3", answer: "eight" },
+            { question: "2 + 7", answer: "nine" },
+            { question: "3 + 6", answer: "nine" },
+            { question: "2 + 6", answer: "eight" },
+            { question: "4 + 4", answer: "eight" },
+            { question: "5 + 4", answer: "nine" },
+            { question: "3 + 5", answer: "eight" },
+            { question: "2 + 8", answer: "ten" },
+            { question: "4 + 2", answer: "six" },
+            { question: "3 + 3", answer: "six" },
+            { question: "5 + 2", answer: "seven" },
+            { question: "7 + 2", answer: "nine" },
+            { question: "3 + 7", answer: "ten" },
+            { question: "2 + 9", answer: "eleven" },
+            { question: "4 + 5", answer: "nine" },
+            { question: "3 + 8", answer: "eleven" },
+            { question: "6 + 3", answer: "nine" },
+            { question: "2 + 4", answer: "six" },
+            { question: "8 + 2", answer: "ten" },
+            { question: "9 + 2", answer: "eleven" },
+            { question: "3 + 9", answer: "twelve" },
+            { question: "2 + 3", answer: "five" },
+            { question: "4 + 6", answer: "ten" },
+            { question: "2 + 2", answer: "four" },
+            { question: "5 + 5", answer: "ten" },
+            { question: "3 + 2", answer: "five" },
+            { question: "6 + 4", answer: "ten" },
+            { question: "7 + 3", answer: "ten" },
+            { question: "2 + 1", answer: "three" },
+            { question: "4 + 7", answer: "eleven" },
+            { question: "2 + 0", answer: "two" },
+            { question: "8 + 3", answer: "eleven" },
+            { question: "3 + 0", answer: "three" },
+            { question: "6 + 5", answer: "eleven" },
+            { question: "2 + 10", answer: "twelve" },
+            { question: "9 + 1", answer: "ten" },
+            { question: "7 + 4", answer: "eleven" },
+            { question: "8 + 4", answer: "twelve" },
+            { question: "5 + 1", answer: "six" },
+            { question: "6 + 1", answer: "seven" },
+            { question: "7 + 1", answer: "eight" },
+            { question: "8 + 1", answer: "nine" },
+            { question: "9 + 3", answer: "twelve" },
+            { question: "9 + 4", answer: "thirteen" },
+            { question: "10 + 2", answer: "twelve" },
+            { question: "0 + 5", answer: "five" }
+        ];
+
+        let shuffledQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let canScoreThisQuestion = true;
+        let playerName = '';
+
+        // Lấy các phần tử DOM
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const playerNameInput = document.getElementById('player-name');
+        const startButton = document.getElementById('start-button');
+        const playAgainButton = document.getElementById('play-again-button');
+
+        const questionBox = document.getElementById('question-box');
+        const optionsContainer = document.getElementById('options-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const questionCountDisplay = document.getElementById('question-count');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const resetButton = document.getElementById('reset-button');
+        const endMessage = document.getElementById('end-message');
+
+        // Khởi tạo Web Speech API
+        const synth = window.speechSynthesis;
+
+        // Hàm xáo trộn mảng (thuật toán Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Hàm tạo các đáp án sai ngẫu nhiên
+        function generateIncorrectOptions(correctAnswer, allAnswers) {
+            const incorrectOptions = new Set();
+            const availableAnswers = allAnswers.filter(ans => ans !== correctAnswer);
+            while (incorrectOptions.size < 3) {
+                if (availableAnswers.length === 0) {
+                    break;
+                }
+                const randomIndex = Math.floor(Math.random() * availableAnswers.length);
+                incorrectOptions.add(availableAnswers[randomIndex]);
+                availableAnswers.splice(randomIndex, 1);
+            }
+            return Array.from(incorrectOptions);
+        }
+
+        // Hàm hiển thị câu hỏi và các lựa chọn
+        function displayQuestion() {
+            feedbackMessage.classList.add('hidden');
+            feedbackMessage.textContent = '';
+            scoreDisplay.textContent = `Điểm: ${score}`;
+            questionCountDisplay.textContent = `Câu: ${currentQuestionIndex + 1} / ${shuffledQuestions.length}`;
+
+            canScoreThisQuestion = true; 
+
+            if (currentQuestionIndex >= shuffledQuestions.length) {
+                endMessage.textContent = `${playerName} đã hoàn thành ${score} / ${shuffledQuestions.length} câu.`;
+                gameScreen.classList.add('hidden');
+                endScreen.classList.remove('hidden');
+                return;
+            }
+
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            questionBox.textContent = currentQuestion.question;
+
+            const allPossibleAnswers = [...new Set(questionsData.map(q => q.answer))];
+            const incorrectOptions = generateIncorrectOptions(currentQuestion.answer, allPossibleAnswers);
+
+            let options = [currentQuestion.answer, ...incorrectOptions];
+            shuffleArray(options);
+
+            optionsContainer.innerHTML = '';
+
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-button');
+                button.addEventListener('click', () => checkAnswer(option, currentQuestion.answer, button));
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        // Hàm kiểm tra đáp án
+        function checkAnswer(selectedOption, correctAnswer, buttonElement) {
+            Array.from(optionsContainer.children).forEach(btn => btn.disabled = true);
+
+            if (selectedOption === correctAnswer) {
+                buttonElement.classList.add('correct');
+                if (canScoreThisQuestion) { 
+                    score++;
+                }
+                canScoreThisQuestion = false; 
+
+                scoreDisplay.textContent = `Điểm: ${score}`;
+
+                if (synth.speaking) {
+                    synth.cancel();
+                }
+                const answerUtterance = new SpeechSynthesisUtterance(correctAnswer);
+                answerUtterance.lang = 'en-US';
+                synth.speak(answerUtterance);
+
+                const positiveFeedback = ["Good job!", "Well done!", "Great!"];
+                const randomPositivePhrase = positiveFeedback[Math.floor(Math.random() * positiveFeedback.length)];
+                const feedbackUtterance = new SpeechSynthesisUtterance(randomPositivePhrase);
+                feedbackUtterance.lang = 'en-US';
+                answerUtterance.onend = () => {
+                    synth.speak(feedbackUtterance);
+                };
+
+                triggerConfetti(buttonElement);
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    displayQuestion();
+                    Array.from(optionsContainer.children).forEach(btn => btn.disabled = false);
+                }, 1800);
+            } else {
+                buttonElement.classList.add('wrong');
+                feedbackMessage.textContent = 'Thử lại!';
+                feedbackMessage.classList.remove('hidden'); 
+
+                canScoreThisQuestion = false; 
+
+                if (synth.speaking) {
+                    synth.cancel();
+                }
+                const tryAgainUtterance = new SpeechSynthesisUtterance('Try again');
+                tryAgainUtterance.lang = 'en-US';
+                synth.speak(tryAgainUtterance);
+
+                setTimeout(() => {
+                    buttonElement.classList.remove('wrong');
+                    Array.from(optionsContainer.children).forEach(btn => btn.disabled = false);
+                }, 800);
+            }
+        }
+
+        // Hàm tạo hiệu ứng kim tuyến
+        function triggerConfetti(sourceElement) {
+            const rect = sourceElement.getBoundingClientRect();
+            const startX = rect.left + rect.width / 2;
+            const startY = rect.top + rect.height / 2;
+
+            const colors = ['#ffeb3b', '#4caf50', '#2196f3', '#f44336', '#9c27b0', '#ff9800', '#fbcfe8', '#a78bfa'];
+
+            for (let i = 0; i < 25; i++) {
+                createConfettiParticle(startX, startY, colors[Math.floor(Math.random() * colors.length)]);
+            }
+
+            setTimeout(() => {
+                for (let i = 0; i < 25; i++) {
+                    createConfettiParticle(startX, startY, colors[Math.floor(Math.random() * colors.length)]);
+                }
+            }, 250);
+        }
+
+        function createConfettiParticle(x, y, color) {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+            confetti.style.backgroundColor = color;
+            confetti.style.left = `${x}px`;
+            confetti.style.top = `${y}px`;
+            document.body.appendChild(confetti);
+
+            const angle = Math.random() * Math.PI * 2;
+            const initialVelocity = Math.random() * 80 + 70;
+            const duration = Math.random() * 1.5 + 1.5;
+
+            const translateX = Math.cos(angle) * (Math.random() * 100 + 50);
+            const translateYUp = - (Math.random() * 120 + 80);
+            const translateYDown = (Math.random() * 200 + 150);
+            const rotateDeg = Math.random() * 720;
+            const rotateDegEnd = rotateDeg + Math.random() * 720;
+
+            confetti.style.setProperty('--translate-x', `${translateX}px`);
+            confetti.style.setProperty('--translate-y-up', `${translateYUp}px`);
+            confetti.style.setProperty('--translate-y-down', `${translateYDown}px`);
+            confetti.style.setProperty('--rotate-deg', `${rotateDeg}deg`);
+            confetti.style.setProperty('--rotate-deg-end', `${rotateDegEnd}deg`);
+
+            confetti.style.animationDuration = `${duration}s`;
+
+            confetti.addEventListener('animationend', () => {
+                confetti.remove();
+            });
+        }
+
+        // Hàm khởi động lại trò chơi
+        function resetGame() {
+            shuffledQuestions = [...questionsData];
+            shuffleArray(shuffledQuestions);
+            currentQuestionIndex = 0;
+            score = 0;
+            displayQuestion();
+            gameScreen.classList.remove('hidden');
+            endScreen.classList.add('hidden');
+        }
+
+        // Xử lý sự kiện nút "Bắt đầu"
+        startButton.addEventListener('click', () => {
+            playerName = playerNameInput.value.trim() || 'Người chơi';
+            startScreen.classList.add('hidden');
+            resetGame();
+        });
+
+        // Xử lý sự kiện nút "Chơi lại"
+        resetButton.addEventListener('click', () => {
+            // Thay thế confirm() bằng modal tùy chỉnh
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
+
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = 'white';
+            modalContent.style.padding = '2rem';
+            modalContent.style.borderRadius = '1rem';
+            modalContent.style.textAlign = 'center';
+            modalContent.style.maxWidth = '90%';
+            modalContent.style.boxShadow = '0 10px 20px rgba(0,0,0,0.2)';
+
+            modalContent.innerHTML = `
+                <p style="font-size: 1.25rem; margin-bottom: 1rem;">Bạn có chắc chắn muốn chơi lại không?</p>
+                <p style="font-size: 1rem; color: #6b7280; margin-bottom: 1.5rem;">Toàn bộ điểm số sẽ bị xóa.</p>
+                <div style="display: flex; justify-content: center; gap: 1rem;">
+                    <button id="modal-confirm" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-colors">Chắc chắn</button>
+                    <button id="modal-cancel" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded transition-colors">Hủy</button>
+                </div>
+            `;
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+
+            document.getElementById('modal-confirm').addEventListener('click', () => {
+                resetGame();
+                modal.remove();
+            });
+
+            document.getElementById('modal-cancel').addEventListener('click', () => {
+                modal.remove();
+            });
+        });
+        
+        playAgainButton.addEventListener('click', () => {
+             startScreen.classList.remove('hidden');
+             endScreen.classList.add('hidden');
+             playerNameInput.value = ''; // Reset input name field
+        });
+
+        // Khởi tạo trò chơi khi tải trang
+        window.onload = () => {
+            startScreen.classList.remove('hidden');
+            gameScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+        };
+    </script>
+</body>
+</html>
